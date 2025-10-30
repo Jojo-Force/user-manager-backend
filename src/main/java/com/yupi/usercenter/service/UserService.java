@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 */
 public interface UserService extends IService<User> {
 
+
     /**
      * 用户注释
      * @param userAccount 用户账号
@@ -31,6 +32,13 @@ public interface UserService extends IService<User> {
      * @return 脱敏后的用户信息
      */
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
+
+    /**
+     *  用户脱敏
+     * @param originUser
+     * @return 脱敏后的用户数据
+     */
+    User getSafetyUser(User originUser);
 }
 
 
