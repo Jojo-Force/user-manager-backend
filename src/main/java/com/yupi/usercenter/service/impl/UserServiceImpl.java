@@ -36,13 +36,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword){
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode){
         //1.校验
         //非空
-        if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword)){
+        if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
            return -1;
         }
 
+        if (planetCode.length() > 5) {
+            return -1;
+        }
         //账号密码不小于4位
         if (userAccount.length() < 4) {
             return -1;
@@ -73,12 +76,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
 
+        // 星球编号不能重复
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("planet_code",planetCode);
+        count = userMapper.selectCount(queryWrapper);
+        if (count > 0){
+            return -1;
+        }
         //2.加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         User user = new User();
 
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
+        user.setPlanetCode(planetCode);
         boolean saveResult = this.save(user);
         if (!saveResult){
             return -1;
@@ -155,6 +166,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setEmail(originUser.getEmail());
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setPlanetCode(originUser.getPlanetCode());
         return safetyUser;
     }
 
