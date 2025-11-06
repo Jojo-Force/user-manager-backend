@@ -3,6 +3,8 @@ package com.yupi.usercenter.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.yupi.usercenter.common.ErrorCode;
+import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.mapper.UserMapper;
 import com.yupi.usercenter.model.domain.User;
 import lombok.extern.slf4j.Slf4j;
@@ -40,20 +42,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //1.校验
         //非空
         if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
-           return -1;
+           throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
 
         if (planetCode.length() > 5) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"星球编码过长");
         }
         //账号密码不小于4位
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户账号过短");
         }
 
         //密码就不小于8位吧
         if(userPassword.length() < 8 || checkPassword.length() < 8){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户密码过短");
         }
 
         // 账号不能包含特殊字符
