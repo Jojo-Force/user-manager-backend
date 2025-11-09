@@ -42,7 +42,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //1.校验
         //非空
         if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
-           throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
+           throw new BusinessException(ErrorCode.NULL_ERROR,"参数为空");
         }
 
         if (planetCode.length() > 5) {
@@ -62,12 +62,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String validPattern = "[_`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\\\\n|\\\\r|\\\\t]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if(matcher.find()){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号包含特殊字符");
         }
 
         //密码和校验密码相同
         if(!userPassword.equals(checkPassword)){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码和校验密码相同");
         }
 
         //账号不能重复，放到最后查询数据库
@@ -75,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("user_account",userAccount);
         long count = this.count(queryWrapper);
         if (count > 0){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号重复");
         }
 
         // 星球编号不能重复
@@ -83,7 +83,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("planet_code",planetCode);
         count = userMapper.selectCount(queryWrapper);
         if (count > 0){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"星球编号重复");
         }
         //2.加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -94,7 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setPlanetCode(planetCode);
         boolean saveResult = this.save(user);
         if (!saveResult){
-            return -1;
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"内部错误");
         }
 
         return user.getId();
@@ -105,24 +105,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //1.校验
         //非空
         if (StringUtils.isAnyBlank(userAccount,userPassword)){
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"用户名和密码为空");
         }
 
         //账号密码不小于4位
         if (userAccount.length() < 4) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号小于4位");
         }
 
         //密码就不小于8位吧
         if(userPassword.length() < 8){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码小于4位");
         }
 
         // 账号不能包含特殊字符
         String validPattern = "[_`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\\\\n|\\\\r|\\\\t]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if(matcher.find()){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号包含特殊字符");
         }
 
 
@@ -136,7 +136,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 用户不存在
         if (user == null){
             log.info("user login failed, user_account cannot match user_poassword");
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户名或密码错误");
         }
 
         // 3.用户脱敏
@@ -155,7 +155,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public User getSafetyUser(User originUser){
         if (originUser == null){
-            return null;
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"user为空");
         }
         User safetyUser = new User();
         safetyUser.setId(originUser.getId());

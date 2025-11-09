@@ -39,7 +39,7 @@ public class UserController {
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.NULL_ERROR,"用户不存在");
         }
 
         String userAccount = userRegisterRequest.getUserAccount();
@@ -47,7 +47,7 @@ public class UserController {
         String checkPassword = userRegisterRequest.getCheckPassword();
         String planetCode = userRegisterRequest.getPlanetCode();
         if (StringUtils.isAllBlank(userAccount,userPassword,checkPassword,planetCode)){
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"参数为空");
         }
         long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
 
@@ -57,14 +57,14 @@ public class UserController {
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"用户不存在");
         }
 
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
 
         if (StringUtils.isAllBlank(userAccount,userPassword)){
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"参数为空");
         }
 
         User user = userService.userLogin(userAccount, userPassword,request);
@@ -74,7 +74,7 @@ public class UserController {
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"参数为空");
         }
         Integer result= userService.userLogout(request);
         return ResultUtils.success(result);
@@ -86,7 +86,7 @@ public class UserController {
         User currentUser = (User) userObj;
 
         if (currentUser == null) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
         }
         long userId = currentUser.getId();
         // TODO 校验用户是否合法
@@ -100,7 +100,7 @@ public class UserController {
     public BaseResponse<List<User>> searchUser(String username, HttpServletRequest request) {
         // 仅管理员可查询
         if (!isAdmin(request)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.NOT_AUTH,"没有管理员权限");
         }
 
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -117,11 +117,11 @@ public class UserController {
     public BaseResponse<Boolean> deleteUsers(@RequestBody long id, HttpServletRequest request) {
         // 仅管理员可查询
         if (!isAdmin(request)){
-            return null;
+            throw new BusinessException(ErrorCode.NOT_AUTH,"没有管理员权限");
         }
 
         if(id <= 0) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数有误");
         }
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);
